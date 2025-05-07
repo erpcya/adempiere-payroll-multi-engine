@@ -534,6 +534,11 @@ public class ParallelEngine implements PayrollEngine {
 			params.add(process.getHR_Payroll_ID());
 		}
 		//	Organization
+		if(process.getAD_Org_ID() != 0) {
+			whereClause.append(" AND e.AD_Org_ID=? " );
+			params.add(process.getAD_Org_ID());
+		}
+		//Organization Transaction
 		if(process.getAD_OrgTrx_ID() != 0) {
 			whereClause.append(" AND e.AD_OrgTrx_ID=? " );
 			params.add(process.getAD_OrgTrx_ID());
