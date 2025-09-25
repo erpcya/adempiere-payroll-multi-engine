@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -115,27 +118,45 @@ public class ParallelEngine implements PayrollEngine {
 		List<Integer> employees = getEmployeeIds();
 		loadMovements();
 		PayrollProcess payrollProcess = PayrollProcess.newInstance(getProcess());
-		employees.parallelStream().forEach(businessPartnerId -> {
-			MBPartner businessPartner = new MBPartner(getCtx(), businessPartnerId, null);
-			logger.info("Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2());
-			long employeeStartTime = System.currentTimeMillis();
-			PayrollEmployee payrollEmployee = PayrollEmployee.newInstance(MHREmployee.getActiveEmployee(getProcess().getCtx(), businessPartnerId, null));
-			Trx.run(transactionName -> {
-				for(int payrollConceptId : payrollConcepts) {
-					MHRPayrollConcept payrollConceptReference = new MHRPayrollConcept(getCtx(), payrollConceptId, null);
-					PayrollConcept payrollConcept = PayrollConcept.newInstance(payrollConceptReference);
-					createMovementFromConcept(payrollProcess, payrollEmployee, payrollConcept, transactionName);
-					if(breakEmployee.containsKey(payrollEmployee.getBusinessPartnerId())) {
-						breakEmployee.remove(payrollEmployee.getBusinessPartnerId());
-						logger.info("Skip Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2() + " Time elapsed: " + TimeUtil.formatElapsed(System.currentTimeMillis() - employeeStartTime));
-						break;
-					}
-				}
-			});
-			logger.info("Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2() + " Time elapsed: " + TimeUtil.formatElapsed(System.currentTimeMillis() - employeeStartTime));
-		});
-		logger.info("Calculation for createParallelMovements # Time elapsed: " + TimeUtil.formatElapsed(System.currentTimeMillis() - startTime));
-		return true;
+		ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		for (Integer businessPartnerId : employees) {
+	        pool.submit(() -> {
+	            try {
+	    			MBPartner businessPartner = new MBPartner(getCtx(), businessPartnerId, null);
+	    			logger.info("Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2());
+	    			long employeeStartTime = System.currentTimeMillis();
+	    			PayrollEmployee payrollEmployee = PayrollEmployee.newInstance(MHREmployee.getActiveEmployee(getProcess().getCtx(), businessPartnerId, null));
+	    			Trx.run(transactionName -> {
+	    				for(int payrollConceptId : payrollConcepts) {
+	    					MHRPayrollConcept payrollConceptReference = new MHRPayrollConcept(getCtx(), payrollConceptId, null);
+	    					PayrollConcept payrollConcept = PayrollConcept.newInstance(payrollConceptReference);
+	    					createMovementFromConcept(payrollProcess, payrollEmployee, payrollConcept, transactionName);
+	    					if(breakEmployee.containsKey(payrollEmployee.getBusinessPartnerId())) {
+	    						breakEmployee.remove(payrollEmployee.getBusinessPartnerId());
+	    						logger.info("Skip Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2() + " Time elapsed: " + TimeUtil.formatElapsed(System.currentTimeMillis() - employeeStartTime));
+	    						break;
+	    					}
+	    				}
+	    			});
+	    			logger.info("Employee # " + businessPartner.getValue() + " - " + businessPartner.getName() +  " " + businessPartner.getName2() + " Time elapsed: " + TimeUtil.formatElapsed(System.currentTimeMillis() - employeeStartTime));
+
+	            } catch (Exception e) {
+	            	logger.log(Level.SEVERE, "Processsing Error Employee ID# " + businessPartnerId, e);
+	            }
+	        });
+	    }
+
+	    pool.shutdown();
+	    try {
+	        pool.awaitTermination(1, TimeUnit.HOURS);
+	    } catch (InterruptedException e) {
+	        Thread.currentThread().interrupt();
+	        throw new RuntimeException("Process Interrupted", e);
+	    }
+	    
+	    logger.info("Calculation for createParallelMovements # Time elapsed: "
+	            + TimeUtil.formatElapsed(System.currentTimeMillis() - startTime));
+	    return true;
 	}
 	
 	/**
