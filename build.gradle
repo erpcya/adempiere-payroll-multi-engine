@@ -48,7 +48,8 @@ java {
 def entityType = 'D'
 group = "io.github.adempiere"
 version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
-urlRepository = System.getenv("ERP_LIBRARY_REPO")
+def urlRepository = System.getenv("ERP_LIBRARY_REPO")
+
 jar {
 	manifest {
 		attributes(
