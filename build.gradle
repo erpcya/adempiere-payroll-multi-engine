@@ -48,7 +48,7 @@ java {
 def entityType = 'D'
 group = "io.github.adempiere"
 version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
-
+urlRepository = System.getenv("ERP_LIBRARY_REPO")
 jar {
 	manifest {
 		attributes(
@@ -62,12 +62,11 @@ jar {
 publishing {
     repositories {
 		mavenLocal()
-
         maven {
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            url = urlRepository
             credentials {
-                username = findProperty("sonatypeUsername")
-                password = findProperty("sonatypePassword")
+                username = System.getenv("GITHUB_DEPLOY_USER") ?: System.properties['deploy.user']
+                password = System.getenv("GITHUB_DEPLOY_TOKEN") ?: System.properties['deploy.token'] 
             }
         }
     }
