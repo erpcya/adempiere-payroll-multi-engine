@@ -50,7 +50,11 @@ java {
 def entityType = 'D'
 group = "io.github.adempiere"
 version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
+//  This fork publishes to its own packages when nothing says otherwise. The
+//  variable still overrides it — another registry, a local run — but a publish with
+//  nothing configured went out with a null URL and failed on it.
 def urlRepository = System.getenv("ERP_LIBRARY_REPO")
+        ?: "https://maven.pkg.github.com/erpcya/adempiere-payroll-multi-engine"
 
 jar {
 	manifest {
@@ -97,9 +101,12 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/adempiere/adempiere-payroll-multi-engine.git'
-                    developerConnection = 'scm:git:ssh://github.com/adempiere/adempiere-payroll-multi-engine.git'
-                    url = 'http://github.com/adempiere/adempiere-payroll-multi-engine'
+                    //  The fork, not upstream. Whoever follows this from a
+                    //  published artifact wants the source that produced it, and
+                    //  upstream does not contain it.
+                    connection = 'scm:git:git://github.com/erpcya/adempiere-payroll-multi-engine.git'
+                    developerConnection = 'scm:git:ssh://github.com/erpcya/adempiere-payroll-multi-engine.git'
+                    url = 'https://github.com/erpcya/adempiere-payroll-multi-engine'
                 }
             }
 		}
