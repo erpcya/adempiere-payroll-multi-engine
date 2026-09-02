@@ -41,7 +41,12 @@ jobs:
         run: ./gradlew publish
         env:
           ADEMPIERE_LIBRARY_VERSION: ${{ github.event.release.tag_name }}
-          ERP_LIBRARY_REPO: ${{ secrets.ERP_LIBRARY_REPO }}
+          #  Not passed. This fork publishes to its own packages, and the
+          #  organization's ERP_LIBRARY_REPO names a registry meant for other
+          #  repositories — a configured value that is valid elsewhere, winning over
+          #  a default that is right here, and failing with a 404 that names neither.
+          #  Remove this comment and pass it again only for a repository that really
+          #  publishes there.
           GITHUB_DEPLOY_USER: ${{ github.actor }}
           #  The run's own token: this publishes to this repository's own
           #  packages, and the run's token is scoped to exactly that.
