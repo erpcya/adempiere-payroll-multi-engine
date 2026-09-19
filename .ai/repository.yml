@@ -24,7 +24,8 @@ terms:
   - liquidación
   - concepto de nómina
   - empleado
-
+  - recibo de pago
+  - motor de nómina
 # How this is built comes from standards/build-profiles.yml, matched by the
 # gradle wrapper in this tree. Nothing to declare unless this repository differs.
 
