@@ -8,7 +8,7 @@
 # an edge agent written in Go. See standards/repository-marker-v1 §5.
 product: adempiere
 type: Library
-entityType: D
+entityType: ECA59
 owner: ERP Consultores y Asociados
 
 # Forked so this platform can live here: a marker, a workflow and a contract
