@@ -31,6 +31,11 @@ dependencies {
     //	ADempiere Core
     implementation "${baseGroupId}:base:${baseVersion}"
     implementation "${baseGroupId}:human-resource-and-payroll:${baseVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.8.2"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 sourceSets {
